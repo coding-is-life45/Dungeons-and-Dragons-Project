@@ -25,6 +25,13 @@
       </ul>
     </nav>
     <header class="header">
+      <div class="drop-down__wrapper">
+      <select id="filter" onchange="handleFilterChange()">
+        <option value="" disabled selected>Sort</option>
+        <option value="CLASSES">Classes</option>
+        <option value="RACES">Races</option>
+      </select>
+    </div>
       <div class="cards"></div>
     </header>
   </body>
