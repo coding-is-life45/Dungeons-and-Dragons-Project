@@ -113,6 +113,11 @@ nav {
   position: absolute;
   top: 36px;
   left: 37%;
+  
+}
+
+.card__class-name::first-letter {
+  text-transform: capitalize;
 }
 
 .card__img {
@@ -137,7 +142,7 @@ nav {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background-color: black;
+  background-color: transparent;
 
   opacity: 0;
 }
@@ -151,16 +156,25 @@ nav {
 
 .card__back--top {
   background-color: #242424;
-  height: 50%;
-  background-image: url("male__druid.jpg");
+  width: 100%;
+ /* height: 100%;   */
   background-size: cover;
-  background-position: center;
+  background-repeat: no-repeat;
+  
 }
+
 
 .card__back--bottom {
   color: white;
   background-color: #242424;
   height: 50%;
+}
+
+.card__info {
+  width: 100%;
+  position: absolute;
+  bottom: 40px;
+  left: 10px;
 }
 
 .class__title {
@@ -183,6 +197,7 @@ nav {
   justify-content: space-between;
   width: 100%;
   list-style-type: none;
+  color: white;
  
 }
 

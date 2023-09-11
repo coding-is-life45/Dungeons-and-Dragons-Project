@@ -14,8 +14,7 @@ async function fetchClassData(className) {
 async function fetchRaceData(raceName) {
     const response = await fetch(`https://www.dnd5eapi.co/api/races/${raceName}`);
     const data = await response.json();
-    console.log(data.index);
-    return data ;
+    return data;
 }
 
 async function fetchClassAbilities(className) {
@@ -58,20 +57,35 @@ function generateClassCardHtml(classData, classAbilities) {
 
     const leftAbilitiesHtml = leftAbilities.map(ability => `<li class="class__skill">${ability}</li>`).join(' ');
     const rightAbilitiesHtml = rightAbilities.map(ability => `<li class="class__skill">${ability}</li>`).join('');
+
+   
+    const backgroundImageHeight = "100%"
+
+    const backgroundImage= ` url('${classData.name}__back--img.png')`;
+    
+    if(classData.name === "wizard") {
+        backgroundImage = `transparent, ${backgroundImage}`
+    }
+
     return `
       <div class="card card__front" onclick="toggleFlip(this)">
         <div class="card__class-name">${classData.name}</div>
         <figure class="card__img--wrapper"><img src="card_template.png" class="card__img" alt="" /></figure>
         <div class="card__info"></div>
         <div class="card__back--wrapper">
-          <div class="card__back--top"></div>
+          <div class="card__back--top ${classData.name}" 
+          style="background-image: ${backgroundImage}; 
+          background-size: cover;
+          height: ${backgroundImageHeight};></div>
           <div class="card__back--bottom">
+          <div class="card__info">
             <h3 class="class__title">${classData.name}</h3>
             <div class="class__skills--wrapper">
               <ul class="class__skills">
                 <div class="class__skills--left">${leftAbilitiesHtml}</div>
                 <div class="class__skills--right">${rightAbilitiesHtml}</div>
               </ul>
+              </div>
             </div>
           </div>
         </div>
@@ -80,15 +94,16 @@ function generateClassCardHtml(classData, classAbilities) {
 }
 
 async function renderCards(type) {
-    let cardsContainer = document.querySelector(" .cards");
+    const cardsContainer = document.querySelector(" .cards");
+
+
     cardsContainer.innerHTML = '';
 
     if (type === "class") {
-        const classes = ['druid', 'wizard', 'rogue', 'monk', 'barbarian', 'ranger']; // Add more class names here
-        cardsContainer = document.querySelector('.cards');
-
+        const classes = ['druid', 'wizard', 'rogue', 'monk', 'barbarian', 'ranger'];
         const classDataPromises = classes.map(className => fetchClassData(className));
         const classDataList = await Promise.all(classDataPromises);
+
 
         for (const classData of classDataList) {
             const classAbilities = await fetchClassAbilities(classData.index);
@@ -101,13 +116,16 @@ async function renderCards(type) {
         const raceDataPromises = races.map(raceName => fetchRaceData(raceName));
         const raceDataList = await Promise.all(raceDataPromises);
 
-        for (const raceName of races) {
-            const raceData = await fetchRaceData(raceName);
-            const raceTraits = await fetchRaceTraits(raceName);
-            const cardHtml = generateRaceCardHtml(raceData.name, raceTraits);
+        console.log(raceDataPromises);
+
+
+        for (const raceData of raceDataList) {
+            const raceTraits = await fetchRaceTraits(raceData.index);
+            const cardHtml = generateRaceCardHtml(raceData, raceTraits);
             cardsContainer.insertAdjacentHTML('beforeend', cardHtml);
         }
     }
+
 }
 
 function generateRaceCardHtml(raceData, raceTraits) {
@@ -120,13 +138,13 @@ function generateRaceCardHtml(raceData, raceTraits) {
     const rightTraitsHtml = rightTraits.map(trait => `<li class="class__skill">${trait}</li>`).join('');
     return `
       <div class="card card__front" onclick="toggleFlip(this)">
-        <div class="card__class-name">${raceData}</div>
+        <div class="card__class-name">${raceData.name}</div>
         <figure class="card__img--wrapper"><img src="card_template.png" class="card__img" alt="" /></figure>
         <div class="card__info"></div>
         <div class="card__back--wrapper">
           <div class="card__back--top"></div>
           <div class="card__back--bottom">
-            <h3 class="class__title">${raceData}</h3>
+            <h3 class="class__title">${raceData.name}</h3>
             <div class="class__skills--wrapper">
               <ul class="class__skills">
                 <div class="class__skills--left">${leftTraitsHtml}</div>
@@ -144,22 +162,23 @@ function generateRaceCardHtml(raceData, raceTraits) {
 
 function handleFilterChange() {
     const filteredDropdown = document.getElementById("filter");
-    filteredDropdown.addEventListener('change', () => {
+
+    filteredDropdown.removeEventListener('change', handleDropdownChange);
+
+    function handleDropdownChange() {
         const selectedOption = filteredDropdown.value;
         if (selectedOption === "CLASSES") {
             renderCards("class");
         } else {
             renderCards("race");
         }
-    })
-    
+    }
+
+    filteredDropdown.addEventListener('change', handleDropdownChange, { once: true });
 }
 
-
-
-handleFilterChange()
+handleFilterChange();
 renderCards("class");
-fetchRaceData("dwarf")
 
 
 
