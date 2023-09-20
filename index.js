@@ -1,6 +1,6 @@
 
 function toggleFlip(card) {
-    card.classList.toggle("flipped")
+card.classList.toggle("flipped");
 }
 
 
@@ -58,27 +58,35 @@ function generateClassCardHtml(classData, classAbilities) {
     const leftAbilitiesHtml = leftAbilities.map(ability => `<li class="class__skill">${ability}</li>`).join(' ');
     const rightAbilitiesHtml = rightAbilities.map(ability => `<li class="class__skill">${ability}</li>`).join('');
 
-   
-    const backgroundImageHeight = "100%"
+    const classNameWithoutSpaces = classData.name.replace(/\s+/g, '-');
 
-    const backgroundImage= ` url('${classData.name}__back--img.png')`;
-    
-    if(classData.name === "wizard") {
-        backgroundImage = `transparent, ${backgroundImage}`
-    }
+
+    const backgroundImageHeight = "100%";
+
+    const cardFrontImage = ` url('${classData.name}__front--img.png')`;
+
+    const backgroundImage = ` url('${classData.name}__back--img.png')`;
+
+    // if(classData.name === "wizard") {
+
+    //     backgroundImage = `transparent, ${backgroundImage}`
+    // }
 
     return `
-      <div class="card card__front" onclick="toggleFlip(this)">
-        <div class="card__class-name">${classData.name}</div>
-        <figure class="card__img--wrapper"><img src="card_template.png" class="card__img" alt="" /></figure>
-        <div class="card__info"></div>
-        <div class="card__back--wrapper">
-          <div class="card__back--top ${classData.name}" 
+    <div class="card card__container" onclick="toggleFlip(this)">
+      <div class="card__class-name">${classData.name}</div>
+      <figure class="card__img--wrapper"><img src="card_template.png" class="card__img" alt=""
+      style="background-image: ${cardFrontImage};"></figure>
+      <div class="card__info--front"></div>
+    
+        <div class="card__back--wrapper ${classNameWithoutSpaces}">
+          <div class="card__back--top ${classNameWithoutSpaces}" 
           style="background-image: ${backgroundImage}; 
           background-size: cover;
-          height: ${backgroundImageHeight};></div>
+          height: ${backgroundImageHeight};">
+         
           <div class="card__back--bottom">
-          <div class="card__info">
+          <div class="card__info--back">
             <h3 class="class__title">${classData.name}</h3>
             <div class="class__skills--wrapper">
               <ul class="class__skills">
@@ -89,12 +97,13 @@ function generateClassCardHtml(classData, classAbilities) {
             </div>
           </div>
         </div>
+      
       </div>
     `;
 }
 
 async function renderCards(type) {
-    const cardsContainer = document.querySelector(" .cards");
+    const cardsContainer = document.querySelector(".cards");
 
 
     cardsContainer.innerHTML = '';
@@ -104,20 +113,15 @@ async function renderCards(type) {
         const classDataPromises = classes.map(className => fetchClassData(className));
         const classDataList = await Promise.all(classDataPromises);
 
-
         for (const classData of classDataList) {
             const classAbilities = await fetchClassAbilities(classData.index);
             const cardHtml = generateClassCardHtml(classData, classAbilities);
             cardsContainer.insertAdjacentHTML('beforeend', cardHtml);
-
         }
     } else if (type === "race") {
         const races = ["dwarf", "elf", "halfling", "human", "dragonborn", "gnome"];
         const raceDataPromises = races.map(raceName => fetchRaceData(raceName));
         const raceDataList = await Promise.all(raceDataPromises);
-
-        console.log(raceDataPromises);
-
 
         for (const raceData of raceDataList) {
             const raceTraits = await fetchRaceTraits(raceData.index);
@@ -126,6 +130,13 @@ async function renderCards(type) {
         }
     }
 
+    // Add event listeners after rendering cards
+    const cardElements = document.querySelectorAll(".card");
+    cardElements.forEach(card => {
+        card.addEventListener("click", () => {
+            toggleFlip(card);
+        });
+    });
 }
 
 function generateRaceCardHtml(raceData, raceTraits) {
@@ -136,25 +147,38 @@ function generateRaceCardHtml(raceData, raceTraits) {
 
     const leftTraitsHtml = leftTraits.map(trait => `<li class="class__skill">${trait}</li>`).join(' ');
     const rightTraitsHtml = rightTraits.map(trait => `<li class="class__skill">${trait}</li>`).join('');
-    return `
-      <div class="card card__front" onclick="toggleFlip(this)">
+
+    const backgroundImageHeight = "100%";
+
+    const racecardFrontImage = ` url('${raceData.name}__front--img.png')`;
+
+    const racebackgroundImage = `url('${raceData.name}__back--img.png')`;
+
+
+
+    return `<div class="card card__container" onclick="toggleFlip(this)">
         <div class="card__class-name">${raceData.name}</div>
-        <figure class="card__img--wrapper"><img src="card_template.png" class="card__img" alt="" /></figure>
-        <div class="card__info"></div>
+        <figure class="card__img--wrapper"><img src="card_template.png" class="card__img" alt="" 
+        style= "background-image: ${racecardFrontImage};></figure>
+        <div class="card__info--front</div>
         <div class="card__back--wrapper">
-          <div class="card__back--top"></div>
+          <div class="card__back--top ${raceData.name}"
+          style="background-image: ${racebackgroundImage};
+          background-size: cover;
+          height: ${backgroundImageHeight};">
           <div class="card__back--bottom">
+          <div class="card__info--back">
             <h3 class="class__title">${raceData.name}</h3>
             <div class="class__skills--wrapper">
               <ul class="class__skills">
                 <div class="class__skills--left">${leftTraitsHtml}</div>
                 <div class="class__skills--right">${rightTraitsHtml}</div>
               </ul>
+              </div>
             </div>
-          </div>
+            </div>
         </div>
-      </div>
-    `;
+        </div>`;
 }
 
 
@@ -163,22 +187,18 @@ function generateRaceCardHtml(raceData, raceTraits) {
 function handleFilterChange() {
     const filteredDropdown = document.getElementById("filter");
 
-    filteredDropdown.removeEventListener('change', handleDropdownChange);
-
-    function handleDropdownChange() {
+    filteredDropdown.addEventListener('change', () => {
         const selectedOption = filteredDropdown.value;
-        if (selectedOption === "CLASSES") {
-            renderCards("class");
-        } else {
-            renderCards("race");
-        }
-    }
-
-    filteredDropdown.addEventListener('change', handleDropdownChange, { once: true });
+        renderCards(selectedOption.toLowerCase());
+    });
 }
 
-handleFilterChange();
-renderCards("class");
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    handleFilterChange();
+    renderCards("class");
+});
 
 
 
